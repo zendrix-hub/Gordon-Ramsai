@@ -8,7 +8,7 @@ try:
     client = genai.Client(api_key=st.secrets["google"]["api_key"])
 except:
     # Fallback to the specific API key provided
-    client = genai.Client(api_key="AIzaSyDkWmNATaEq1espimxX8qMtmfSWAZnC9ro")
+    client = genai.Client(api_key="AIzaSyBBlh3szxTImAtUHx-VEF9ute2RbFmVezQ")
 
 def generate_response(messages, profile):
     last_user_msg = messages[-1]["content"]
