@@ -53,7 +53,7 @@ def generate_response(messages, profile):
             
             # Native model.start_chat() equivalent
             current_chat_data["gemini_session"] = client.chats.create(
-                model='gemini-2.5-flash',
+                model='gemini-2.5-flash-lite',
                 config=genai.types.GenerateContentConfig(system_instruction=system_prompt),
                 history=history
             )
