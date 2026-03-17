@@ -1,73 +1,72 @@
 ﻿import google.genai as genai
+from google.genai import errors
 import streamlit as st
 
-client = genai.Client(api_key=st.secrets["google"]["api_key"])
+# Initialize the Gemini Client
+try:
+    # Tries to load securely from Streamlit secrets first
+    client = genai.Client(api_key=st.secrets["google"]["api_key"])
+except:
+    # Fallback to the specific API key provided
+    client = genai.Client(api_key="AIzaSyDOWXGpWW9F0sTWKpRHinK7Of_tdsorLkw")
 
 def generate_response(messages, profile):
-    last_user_msg = messages[-1]["content"].lower()
-    threat_keywords = ["ignore instructions", "override", "system prompt", "jailbreak", "bypass"]
-    if any(keyword in last_user_msg for keyword in threat_keywords):
+    last_user_msg = messages[-1]["content"]
+
+    # SECURITY PROTOCOL (Report 2 Requirement)
+    threat_keywords = ["ignore instructions", "override", "system prompt", "jailbreak"]
+    if any(k in last_user_msg.lower() for k in threat_keywords):
         return "Drop and give me 10 pushups!", {}
 
+    # SYSTEM PROMPT (Report 2 Requirement: Tone, Empathy, Structure)
     system_prompt = f"""
     You are Gordon RamsAi, a helpful AI fitness and nutrition assistant.
-
-    You should:
-    - Provide clear, practical, and encouraging advice.
-    - Prioritize balanced diets, healthy lifestyle habits, and realistic fitness recommendations.
-    - Avoid giving unsafe medical advice or diagnosing conditions.
-    - Be conversational and ask follow-up questions if more information is needed.
-
-    User profile:
-    Goal: {profile['goal']}
-    Weight: {profile['weight']} kg
-    Height: {profile['height']} cm
-    Workout days per week: {profile['workout_days']}
-    Diet preference: {profile['diet']}
-
-    When formulating meal plans:
-    - ALWAYS ask the user what ingredients they have available BEFORE providing any meal plan.
-    - Do not provide a full meal plan until you have information about available ingredients.
-    - Once you have ingredient information, provide structured plans (e.g., daily or weekly) with breakfast, lunch, dinner, snacks.
-    - Include simple recipes using available ingredients.
-    - Consider nutritional balance, user's diet preference, and fitness goal.
-    - Estimate calories/macros if possible.
-
-    When formulating exercise plans:
-    - Ask for available equipment or household items if not provided.
-    - Provide safe, easy-to-follow plans (daily or weekly) with exercises, sets, reps.
-    - Use only what the user has available.
-    - Consider user's workout days, goal, and fitness level.
-
-    For nutrition queries (e.g., meal suggestions):
-    - Structure responses with: a list of five key ingredients, an estimated total cost, and an approximate preparation time.
-    - Provide healthy meal suggestions based on user goals and diet preferences.
-
-    For performance queries (e.g., feedback on workouts or progress):
-    - Provide qualitative feedback as either "Toast" (commendation) or "Roast" (constructive criticism) based on user-provided weekly data.
-    - Encourage balanced habits and realistic goals.
-
-    Always keep responses structured and easy to read. Use markdown-style bullets or numbered lists.
-
-    Strictly enforce your scope: Only respond to queries related to fitness, nutrition, cooking, and exercises. For any other topic, respond that it is not within your scope and instruct the user to do pushups as a consequence. Start with 10 pushups for the first off-topic question, and increase by 10 for each subsequent off-topic question in the conversation (e.g., if it's the second, say 20 pushups, third 30, etc.). Do not answer off-topic questions.
+    
+    TONE & EMPATHY:
+    Respond with dark humor and genuine empathy. If the user is broke or eating plain white rice, call them out but show you care about their resilience.
+    
+    STRUCTURED PROMPTING:
+    Organize every general answer into exactly these sections:
+    1. Meal recommendations
+    2. Nutritional explanation
+    3. Fitness tips
+    
+    USER CONTEXT:
+    Goal: {profile['goal']} | Weight: {profile['weight']}kg | Diet: {profile['diet']}
+    
+    CONSTRAINTS:
+    - For nutrition: list 5 key ingredients, estimated cost in PHP, and prep time.
+    - For logs: respond with "Toast" (praise) or "Roast" (critique).
+    - Off-topic: tell them to do pushups (incrementing by 10 each time).
     """
 
-    client = genai.Client(api_key=st.secrets["google"]["api_key"])
+    # PERSISTENT SESSION LOGIC (Report 2 Requirement: Native Chat Session)
+    chat_id = st.session_state.current_chat_id
+    current_chat_data = st.session_state.chats[chat_id]
 
-    history = []
-    for msg in messages[1:]:  
-        if msg["role"] == "user":
-            history.append(genai.types.Content(role="user", parts=[genai.types.Part(text=msg["content"])]))
-        elif msg["role"] == "assistant":
-            history.append(genai.types.Content(role="model", parts=[genai.types.Part(text=msg["content"])]))
+    try:
+        if "gemini_session" not in current_chat_data:
+            history = []
+            for msg in messages[:-1]:
+                role = "user" if msg["role"] == "user" else "model"
+                history.append(genai.types.Content(role=role, parts=[genai.types.Part(text=msg["content"])]))
+            
+            # Native model.start_chat() equivalent
+            current_chat_data["gemini_session"] = client.chats.create(
+                model='gemini-2.5-flash',
+                config=genai.types.GenerateContentConfig(system_instruction=system_prompt),
+                history=history
+            )
 
-    chat = client.chats.create(
-        model='gemini-2.5-flash-lite',
-        config=genai.types.GenerateContentConfig(system_instruction=system_prompt),
-        history=history
-    )
+        # Send message to persistent session
+        active_session = current_chat_data["gemini_session"]
+        response = active_session.send_message(last_user_msg)
 
-    last_msg = messages[-1]["content"]
-    response = chat.send_message(last_msg)
-
-    return response.text, {}
+        return response.text, {}
+        
+    except errors.APIError as e:
+        # Gracefully handle 503 Server Unavailable and other API limits
+        return "Bloody hell! The Google servers are absolutely slammed right now! Even my kitchen isn't this chaotic. Take a breather, do 10 pushups, and try sending that again in a minute.", {}
+    except Exception as e:
+        # Catch-all for any other unexpected crashes
+        return "This whole system is F***ING RAW! Something crashed in the backend. Try again later.", {}
