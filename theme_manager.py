@@ -71,6 +71,40 @@ def apply_bianco_fuji_theme():
             transform: scale(1.02); /* Slight pop when hovering over the insult */
         }
 
+        /* Custom Metric Cards Styling */
+        [data-testid="stMetric"] {
+            background-color: var(--bg-chat) !important;
+            border-left: 3px solid var(--accent) !important;
+            border-right: 1px solid var(--border-color) !important;
+            border-top: 1px solid var(--border-color) !important;
+            border-bottom: 1px solid var(--border-color) !important;
+            border-radius: 6px !important;
+            padding: 10px 15px !important;
+            box-shadow: var(--box-shadow-chat) !important;
+            transition: all 0.2s ease !important;
+        }
+        [data-testid="stMetric"]:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0px 8px 20px var(--btn-shadow) !important;
+            border-color: var(--accent) !important;
+        }
+        [data-testid="stMetric"] label {
+            color: var(--text-muted) !important;
+            font-size: 0.85rem !important;
+            font-weight: 700 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 1px !important;
+        }
+        [data-testid="stMetric"] [data-testid="stMetricValue"] {
+            color: var(--text-main) !important;
+            font-size: 1.4rem !important;
+            font-weight: 800 !important;
+        }
+        [data-testid="stMetric"] [data-testid="stMetricDelta"] {
+            font-size: 0.8rem !important;
+            font-weight: 600 !important;
+        }
+
         /* CONCEPT 4: Michelin Plating */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -162,7 +196,7 @@ def apply_bianco_fuji_theme():
             box-shadow: none !important;
         }
 
-        /* CONCEPT 1: Action Creates Energy Input */
+        /* CONCEPT 1: Action Creates Energy Input (Fire Glow) */
         div[data-testid="stChatInput"] {
             border-radius: 6px !important;
             border: 1px solid var(--border-color) !important;
@@ -171,8 +205,8 @@ def apply_bianco_fuji_theme():
             transition: all 0.3s ease; 
         }
         div[data-testid="stChatInput"]:focus-within {
-            border-color: var(--accent) !important;
-            box-shadow: 0px 0px 15px var(--btn-shadow) !important;
+            border-color: #FF4500 !important; /* Orange fire glow border */
+            box-shadow: 0px 0px 20px rgba(255, 69, 0, 0.4) !important;
             transform: scale(1.01); 
         }
         div[data-testid="stChatInput"] textarea {
@@ -180,15 +214,16 @@ def apply_bianco_fuji_theme():
             color: var(--text-main) !important;
         }
 
-        /* Typography */
+        /* Typography & Glowing Red Neon */
         .ramsay-header {
-            color: var(--accent) !important;
-            font-size: 2.5rem;
+            color: #E32636 !important; /* Ferrari Red */
+            font-size: 2.7rem;
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: var(--header-letter-spacing);
             margin: 0;
             padding-top: 10px;
+            text-shadow: 0 0 10px rgba(227, 38, 54, 0.5), 0 0 20px rgba(227, 38, 54, 0.3);
         }
         .ramsay-subheader {
             color: var(--text-muted) !important;
@@ -207,11 +242,11 @@ def render_main_header():
 
 def render_daily_roast_widget():
     quotes = [
-        "🥪 What are you? An idiot sandwich.",
-        "🐔 This chicken is so raw it's still singing Hakuna Matata!",
-        "👵 My gran could do better! And she's dead!",
-        "🦇 There's enough garlic in here to kill every vampire in Europe.",
-        "🩴 This meal is as dry as Gandhi's flip-flop!"
+        "What are you? An idiot sandwich.",
+        "This chicken is so raw it's still singing Hakuna Matata!",
+        "My gran could do better! And she's dead!",
+        "There's enough garlic in here to kill every vampire in Europe.",
+        "This meal is as dry as Gandhi's flip-flop!"
     ]
     st.markdown(f"""
     <div style="background-color: var(--bg-chat); border-left: 3px solid var(--accent); padding: 15px; border-radius: 6px; box-shadow: var(--box-shadow-chat); margin-top: 20px; transition: transform 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
@@ -224,11 +259,11 @@ def get_quick_action_buttons():
     st.markdown("<br>", unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
-        w = st.button("💪 Quick Workout", use_container_width=True)
-        r = st.button("🧘 Rest & Recover", use_container_width=True)
-        c = st.button("🛒 Cheap Meal Ideas", use_container_width=True)
+        w = st.button("Quick Workout", use_container_width=True)
+        r = st.button("Rest & Recover", use_container_width=True)
+        c = st.button("Cheap Meal Ideas", use_container_width=True)
     with col2:
-        h = st.button("🔥 Hell Week", use_container_width=True)
-        f = st.button("🍽️ Fuel & Sweat", use_container_width=True)
-        s = st.button("⚡ Pre-Workout Snack", use_container_width=True)
+        h = st.button("Hell Week", use_container_width=True)
+        f = st.button("Fuel & Sweat", use_container_width=True)
+        s = st.button("Pre-Workout Snack", use_container_width=True)
     return {"workout": w, "hell_week": h, "rest": r, "fuel": f, "cheap_meal": c, "snack": s}

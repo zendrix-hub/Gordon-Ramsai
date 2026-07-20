@@ -15,13 +15,21 @@ _TOP_K          = 3
 _KNOWLEDGE_FILE = Path(__file__).parent / "knowledge.txt"
 _CHROMA_DIR     = Path(__file__).parent / ".chromadb"
 
-# ── Client Setup using Streamlit Secrets ──────────────────────────────────────
-try:
-    api_key = st.secrets["google"]["api_key"]
-except:
-    api_key = "AIzaSyBBlh3szxTImAtUHx-VEF9ute2RbFmVezQ"
-
-_embed_client = genai.Client(api_key=api_key)
+# ── Dynamic Client Setup ──────────────────────────────────────────────────────
+def _get_embed_client():
+    api_key = st.session_state.get("google_api_key")
+    if not api_key:
+        try:
+            api_key = st.secrets["google"]["api_key"]
+        except Exception:
+            pass
+    if not api_key:
+        import os
+        api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        # Default fallback key
+        api_key = "AIzaSyBBlh3szxTImAtUHx-VEF9ute2RbFmVezQ"
+    return genai.Client(api_key=api_key)
 
 _chroma = chromadb.PersistentClient(
     path=str(_CHROMA_DIR),
@@ -40,7 +48,8 @@ def _chunk_text(text: str, size: int = _CHUNK_SIZE, overlap: int = _CHUNK_OVERLA
     return [c for c in chunks if c.strip()]
 
 def _embed(texts: list[str]) -> list[list[float]]:
-    response = _embed_client.models.embed_content(
+    client = _get_embed_client()
+    response = client.models.embed_content(
         model=_EMBED_MODEL,
         contents=texts,
     )
