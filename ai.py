@@ -38,7 +38,8 @@ def get_gemini_client():
         import os
         api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        api_key = "AIzaSyBBlh3szxTImAtUHx-VEF9ute2RbFmVezQ"
+        st.error("🔑 Google Gemini API key missing! Please configure .streamlit/secrets.toml or set GEMINI_API_KEY.")
+        st.stop()
     return genai.Client(api_key=api_key)
 
 def get_langfuse_client():
